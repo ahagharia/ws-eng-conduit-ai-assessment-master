@@ -1,4 +1,7 @@
 <fieldset [formGroup]="group" class="form-group">
+  <label>
+    {{ field?.label }}
+  </label>
   <textarea
     class="form-control form-control-lg"
     [attr.rows]="field?.attrs?.rows || 5"

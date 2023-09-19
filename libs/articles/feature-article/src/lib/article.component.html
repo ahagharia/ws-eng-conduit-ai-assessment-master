@@ -1,7 +1,13 @@
 <div class="article-page">
-  <div class="banner">
+  <div class="col-md-6 offset-md-3 col-xs-12">
     <div class="container">
       <h1 data-e2e-id="article-title">{{ (article$ | async).title }}</h1>
+      <h5 data-e2e-id="article-title">{{ (article$ | async).description }}</h5>
+      <br />
+      <div class="alert alert-info" role="alert" [hidden]="!isLocked">
+        {{ isEditedBy }} is currently editing this article
+      </div>
+      <br />
       <cdt-article-meta
         [article]="article$ | async"
         (follow)="follow($event)"
@@ -10,56 +16,49 @@
         (unfavorite)="unfavorite($event)"
         (delete)="delete($event)"
         [canModify]="canModify"
+        [isLocked]="isLocked"
+        [isAuthor]="isAuthor"
       >
       </cdt-article-meta>
+      <cdt-article-coauthors [article]="article$ | async"></cdt-article-coauthors>
+      <hr />
     </div>
   </div>
-
-  <div class="container page">
-    <div class="row article-content">
-      <div class="col-md-12">
-        <div [innerHTML]="(article$ | async)?.body | markdown"></div>
-      </div>
-    </div>
-    <hr />
-    <div class="article-actions">
-      <cdt-article-meta
-        [article]="article$ | async"
-        (follow)="follow($event)"
-        (unfollow)="unfollow($event)"
-        (favorite)="favorite($event)"
-        (unfavorite)="unfavorite($event)"
-        (delete)="delete($event)"
-        [canModify]="canModify"
-      ></cdt-article-meta>
-    </div>
-
-    <div class="row">
-      <div class="col-xs-12 col-md-8 offset-md-2">
-        <cdt-add-comment
-          *ngIf="isAuthenticated$ | async"
-          [article]="article$ | async"
-          [data$]="data$"
-          [structure$]="structure$"
-          [currentUser]="currentUser$ | async"
-          [touchedForm$]="touchedForm$"
-          (submitComment)="submit($event)"
-          (updateForm)="updateForm($event)"
-        >
-        </cdt-add-comment>
-
-        <div *ngIf="(isAuthenticated$ | async) === false">
-          <a [routerLink]="['/login']">Sign in</a> or <a [routerLink]="['/register']">sign up</a> to add comments on
-          this article.
+  <div class="col-md-6 offset-md-3 col-xs-12 container page">
+    <div class="container">
+      <div class="row article-content">
+        <div class="col-md-12">
+          <div [innerHTML]="(article$ | async)?.body | markdown"></div>
         </div>
+      </div>
 
-        <cdt-article-comment
-          *ngFor="let comment of comments$ | async"
-          [currentUser]="currentUser$ | async"
-          (delete)="deleteComment($event)"
-          [article]="article$ | async"
-          [comment]="comment"
-        ></cdt-article-comment>
+      <div class="row">
+        <div class="col-md-12">
+          <cdt-add-comment
+            *ngIf="isAuthenticated$ | async"
+            [article]="article$ | async"
+            [data$]="data$"
+            [structure$]="structure$"
+            [currentUser]="currentUser$ | async"
+            [touchedForm$]="touchedForm$"
+            (submitComment)="submit($event)"
+            (updateForm)="updateForm($event)"
+          >
+          </cdt-add-comment>
+
+          <div *ngIf="(isAuthenticated$ | async) === false">
+            <a [routerLink]="['/login']">Sign in</a> or <a [routerLink]="['/register']">sign up</a> to add comments on
+            this article.
+          </div>
+
+          <cdt-article-comment
+            *ngFor="let comment of comments$ | async"
+            [currentUser]="currentUser$ | async"
+            (delete)="deleteComment($event)"
+            [article]="article$ | async"
+            [comment]="comment"
+          ></cdt-article-comment>
+        </div>
       </div>
     </div>
   </div>

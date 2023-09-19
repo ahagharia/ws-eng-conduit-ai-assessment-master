@@ -1,4 +1,7 @@
 <fieldset [formGroup]="group" class="form-group">
+  <label>
+    {{ field?.label }}
+  </label>
   <input
     [formControlName]="field?.name"
     [attr.placeholder]="field?.placeholder"

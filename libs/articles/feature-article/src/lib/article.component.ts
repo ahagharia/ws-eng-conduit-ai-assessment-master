@@ -11,6 +11,7 @@ import { MarkdownPipe } from './pipes/markdown.pipe';
 import { ArticleCommentComponent } from './article-comment/article-comment.component';
 import { AddCommentComponent } from './add-comment/add-comment.component';
 import { Store } from '@ngrx/store';
+import { ArticleCoAuthorsComponent } from './article-coauthors/article-coauthors.component';
 
 const structure: Field[] = [
   {
@@ -29,19 +30,29 @@ const structure: Field[] = [
   standalone: true,
   templateUrl: './article.component.html',
   styleUrls: ['./article.component.css'],
-  imports: [CommonModule, ArticleMetaComponent, ArticleCommentComponent, MarkdownPipe, AddCommentComponent],
+  imports: [
+    CommonModule,
+    ArticleMetaComponent,
+    ArticleCommentComponent,
+    MarkdownPipe,
+    AddCommentComponent,
+    ArticleCoAuthorsComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleComponent implements OnInit, OnDestroy {
   article$ = this.store.select(articleQuery.selectData);
   comments$ = this.store.select(articleQuery.selectComments);
   canModify = false;
+  isLocked = true;
+  isAuthor = false;
+  isEditedBy = '';
+  author = '';
   isAuthenticated$ = this.store.select(selectLoggedIn);
   structure$ = this.store.select(ngrxFormsQuery.selectStructure);
   data$ = this.store.select(ngrxFormsQuery.selectData);
   currentUser$ = this.store.select(selectUser);
   touchedForm$ = this.store.select(ngrxFormsQuery.selectTouched);
-
   constructor(private readonly store: Store) {}
 
   ngOnInit() {
@@ -51,11 +62,27 @@ export class ArticleComponent implements OnInit, OnDestroy {
       .select(selectAuthState)
       .pipe(
         filter((auth) => auth.loggedIn),
-        (auth$) => combineLatest([auth$, this.store.select(articleQuery.getAuthorUsername)]),
+        (auth$) =>
+          combineLatest([
+            auth$,
+            this.store.select(articleQuery.getAuthorUsername),
+            this.store.select(articleQuery.getCoAuthorUsernames),
+            this.store.select(articleQuery.articleLockedBy),
+          ]),
         untilDestroyed(this),
       )
-      .subscribe(([auth, username]) => {
-        this.canModify = auth.user.username === username;
+      .subscribe(([auth, username, coAuthors, lockedBy]) => {
+        this.isAuthor = username == auth.user.username;
+        this.author = username;
+        this.canModify = coAuthors.includes(auth.user.username) || this.isAuthor;
+        if (
+          lockedBy.username == auth.user.username ||
+          lockedBy.username == '' ||
+          lockedBy.lastActivity == undefined ||
+          Date.now() - Date.parse(lockedBy.lastActivity.toString()) > 300000
+        )
+          this.isLocked = false;
+        this.isEditedBy = lockedBy.username;
       });
   }
 

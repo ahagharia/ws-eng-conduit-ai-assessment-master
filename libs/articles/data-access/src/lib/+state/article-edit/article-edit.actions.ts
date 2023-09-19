@@ -5,5 +5,9 @@ export const articleEditActions = createActionGroup({
   events: {
     publishArticle: emptyProps(),
     publishArticleSuccess: emptyProps(),
+    lockArticle: emptyProps(),
+    lockArticleSuccess: emptyProps(),
+    unlockArticle: emptyProps(),
+    unlockArticleSuccess: emptyProps(),
   },
 });

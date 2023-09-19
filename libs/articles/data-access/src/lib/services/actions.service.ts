@@ -22,4 +22,12 @@ export class ActionsService {
   unfavorite(slug: string): Observable<ArticleResponse> {
     return this.apiService.delete<ArticleResponse>('/articles/' + slug + '/favorite');
   }
+
+  lock(slug: string): Observable<ArticleResponse> {
+    return this.apiService.post<ArticleResponse, void>('/articles/' + slug + '/lock');
+  }
+
+  unlock(slug: string): Observable<ArticleResponse> {
+    return this.apiService.delete<ArticleResponse>('/articles/' + slug + '/lock');
+  }
 }

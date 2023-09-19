@@ -2,14 +2,16 @@ import { ComponentRef, Directive, Input, OnChanges, OnInit, Type, ViewContainerR
 import { FormGroup } from '@angular/forms';
 
 import { Field } from '../+state/forms.interfaces';
+import { BadgeInputComponent } from '../fields/badgeinput/badgeinput.component';
 import { InputComponent } from '../fields/input/input.component';
 import { TextareaComponent } from '../fields/textarea/textarea.component';
 
-type Components = InputComponent | TextareaComponent;
+type Components = InputComponent | TextareaComponent | BadgeInputComponent;
 
 const componentsMapper: { [key: string]: Type<Components> } = {
   INPUT: InputComponent,
   TEXTAREA: TextareaComponent,
+  BADGEINPUT: BadgeInputComponent,
 };
 
 @Directive({

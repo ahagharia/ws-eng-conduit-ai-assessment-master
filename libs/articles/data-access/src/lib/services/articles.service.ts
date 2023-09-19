@@ -47,6 +47,20 @@ export class ArticlesService {
     return this.apiService.post<ArticleResponse, ArticleResponse>('/articles/', { article: article });
   }
 
+  lockArticle(article: Article): Observable<ArticleResponse> {
+    if (article.slug) {
+      return this.apiService.post<ArticleResponse, void>('/articles/' + article.slug + '/lock');
+    }
+    return new Observable<ArticleResponse>();
+  }
+
+  unlockArticle(article: Article): Observable<ArticleResponse> {
+    if (article.slug) {
+      return this.apiService.delete<ArticleResponse>('/articles/' + article.slug + '/lock');
+    }
+    return new Observable<ArticleResponse>();
+  }
+
   // TODO: remove any
   private toHttpParams(params: any) {
     return Object.getOwnPropertyNames(params).reduce((p, key) => p.set(key, params[key]), new HttpParams());

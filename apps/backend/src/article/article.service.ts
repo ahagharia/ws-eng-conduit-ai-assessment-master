@@ -9,6 +9,7 @@ import { IArticleRO, IArticlesRO, ICommentsRO } from './article.interface';
 import { Comment } from './comment.entity';
 import { CreateArticleDto, CreateCommentDto } from './dto';
 import { Tag } from '../tag/tag.entity';
+import { UpdateArticleDto } from './dto/update-article.dto';
 
 @Injectable()
 export class ArticleService {
@@ -94,7 +95,7 @@ export class ArticleService {
     const user = userId
       ? await this.userRepository.findOneOrFail(userId, { populate: ['followers', 'favorites'] })
       : undefined;
-    const article = await this.articleRepository.findOne(where, { populate: ['author'] });
+    const article = await this.articleRepository.findOne(where, { populate: ['author', 'coAuthors'] });
     return { article: article && article.toJSON(user) } as IArticleRO;
   }
 
@@ -159,20 +160,51 @@ export class ArticleService {
     const article = new Article(user!, dto.title, dto.description, dto.body);
     await this.addTags(dto.tagList);
     article.tagList.push(...dto.tagList);
+
+    var coAuthors = dto.coAuthorUsernames;
+    if (coAuthors.toString() == '') coAuthors = [];
+    if (user) coAuthors.push(user.username);
+    for (var userName of coAuthors) {
+      const found = await this.userRepository.findOne({ username: userName });
+      if (found) {
+        article.coAuthors.add(found);
+      }
+    }
     user?.articles.add(article);
     await this.em.flush();
 
     return { article: article.toJSON(user!) };
   }
 
-  async update(userId: number, slug: string, articleData: any): Promise<IArticleRO> {
+  async update(userId: number, slug: string, dto: UpdateArticleDto): Promise<IArticleRO> {
     const user = await this.userRepository.findOne(
       { id: userId },
       { populate: ['followers', 'favorites', 'articles'] },
     );
-    const article = await this.articleRepository.findOne({ slug }, { populate: ['author'] });
-    wrap(article).assign(articleData);
-    await this.addTags(dto.tagList);
+    var article = await this.articleRepository.findOne({ slug }, { populate: ['author', 'coAuthors'] });
+    if (article) {
+      article.body = dto.body;
+      article.title = dto.title;
+      article.description = dto.description;
+      article.updatedAt = new Date();
+      article.tagList = dto.tagList;
+      await this.addTags(dto.tagList);
+      if (user) dto.coAuthorUsernames.push(user.username);
+      article.coAuthors.getItems().forEach((coAuth) => {
+        var index = dto.coAuthorUsernames.indexOf(coAuth.username);
+        if (index > -1) {
+          dto.coAuthorUsernames.splice(index, 1); // remove it from this list as it is already present
+        } else {
+          article?.coAuthors.remove(coAuth);
+        }
+      });
+      for (var userName of dto.coAuthorUsernames) {
+        const found = await this.userRepository.findOne({ username: userName });
+        if (found) {
+          article.coAuthors.add(found);
+        }
+      }
+    }
     await this.em.flush();
 
     return { article: article!.toJSON(user!) };
@@ -181,14 +213,33 @@ export class ArticleService {
   async addTags(tagList: string[]) {
     var newTags: Tag[] = [];
     for (var tag of tagList) {
-        const found = await this.tagRepository.findOne({ tag: tag });
-        if (!found) {
-          newTags.push(new Tag(tag));
-        }
-    };
-    this.em.persist(newTags); 
+      const found = await this.tagRepository.findOne({ tag: tag });
+      if (!found) {
+        newTags.push(new Tag(tag));
+      }
+    }
+    this.em.persist(newTags);
   }
   async delete(slug: string) {
     return this.articleRepository.nativeDelete({ slug });
+  }
+  async lockArticle(id: number, slug: string): Promise<IArticleRO> {
+    const article = await this.articleRepository.findOneOrFail({ slug }, { populate: ['author'] });
+    const user = await this.userRepository.findOneOrFail(id);
+
+    article.lockedBy = user;
+    article.lastActivity = new Date(Date.now());
+
+    await this.em.flush();
+    return { article: article.toJSON(user) };
+  }
+  async unlockArticle(id: number, slug: string): Promise<IArticleRO> {
+    const article = await this.articleRepository.findOneOrFail({ slug }, { populate: ['author'] });
+    const user = await this.userRepository.findOneOrFail(id);
+
+    article.lockedBy = undefined;
+
+    await this.em.flush();
+    return { article: article.toJSON(user) };
   }
 }

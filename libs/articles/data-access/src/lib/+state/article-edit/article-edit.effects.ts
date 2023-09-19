@@ -28,3 +28,45 @@ export const publishArticle$ = createEffect(
   },
   { functional: true },
 );
+
+export const lockArticle$ = createEffect(
+  (
+    actions$ = inject(Actions),
+    articlesService = inject(ArticlesService),
+    store = inject(Store),
+    router = inject(Router),
+  ) => {
+    return actions$.pipe(
+      ofType(articleEditActions.lockArticle),
+      concatLatestFrom(() => store.select(ngrxFormsQuery.selectData)),
+      concatMap(([_, data]) =>
+        articlesService.lockArticle(data).pipe(
+          map(() => articleEditActions.lockArticleSuccess()),
+          catchError((result) => of(formsActions.setErrors({ errors: result.error.errors }))),
+        ),
+      ),
+    );
+  },
+  { functional: true },
+);
+
+export const unlockArticle$ = createEffect(
+  (
+    actions$ = inject(Actions),
+    articlesService = inject(ArticlesService),
+    store = inject(Store),
+    router = inject(Router),
+  ) => {
+    return actions$.pipe(
+      ofType(articleEditActions.unlockArticle),
+      concatLatestFrom(() => store.select(ngrxFormsQuery.selectData)),
+      concatMap(([_, data]) =>
+        articlesService.unlockArticle(data).pipe(
+          map(() => articleEditActions.lockArticleSuccess()),
+          catchError((result) => of(formsActions.setErrors({ errors: result.error.errors }))),
+        ),
+      ),
+    );
+  },
+  { functional: true },
+);

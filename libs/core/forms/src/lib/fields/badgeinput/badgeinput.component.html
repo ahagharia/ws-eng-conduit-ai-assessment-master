@@ -1,0 +1,22 @@
+<fieldset [formGroup]="group">
+  <label> {{ field?.label }} </label>
+  <input
+    hidden
+    type="text"
+    placeholder="Add tags (comma-separated)"
+    [formControlName]="field?.name"
+    (keydown)="onKeyDown($event)"
+    (ngModelChange)="setTags($event)"
+  />
+</fieldset>
+<div class="tag-input-container form-group">
+  <div class="tags">
+    <span *ngFor="let tag of tags; let i = index" class="tag badge badge-primary">
+      {{ tag }}
+      <button type="button" class="close" aria-label="Close" (click)="removeTag(i)">
+        <span aria-hidden="true">X</span>
+      </button>
+    </span>
+  </div>
+  <input type="text" [attr.placeholder]="field?.placeholder" [(ngModel)]="userInput" (keydown)="onKeyDown($event)" />
+</div>

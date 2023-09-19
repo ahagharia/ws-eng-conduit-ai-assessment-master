@@ -1,3 +1,4 @@
+import { CoAuthors } from './coauthor';
 import { Profile } from './profile';
 
 export interface Article {
@@ -11,6 +12,9 @@ export interface Article {
   favorited: boolean;
   favoritesCount: number;
   author: Profile;
+  coAuthors: CoAuthors[];
+  lockedBy?: Profile;
+  lastActivity?: Date;
 }
 
 export interface ArticleResponse {

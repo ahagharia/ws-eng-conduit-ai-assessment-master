@@ -9,7 +9,7 @@ export interface Field {
   attrs?: any;
 }
 
-export type FieldType = 'INPUT' | 'TEXTAREA';
+export type FieldType = 'INPUT' | 'TEXTAREA' | 'BADGEINPUT';
 
 export interface Errors {
   [key: string]: string;

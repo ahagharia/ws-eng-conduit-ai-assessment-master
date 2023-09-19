@@ -1,0 +1,11 @@
+<ng-container *ngIf="anyCoAuthors">
+  <span class="title">Co-authors:</span>
+  <div class="user-badges">
+    <div *ngFor="let user of coAuthors">
+      <div class="user-badge">
+        <img [src]="user.image" class="user-photo" />
+        <span class="user-name">{{ user.username }}</span>
+      </div>
+    </div>
+  </div>
+</ng-container>

@@ -14,6 +14,8 @@ export class ArticleMetaComponent {
   @Input() article!: Article;
   @Input() isAuthenticated!: boolean;
   @Input() canModify!: boolean;
+  @Input() isLocked!: boolean;
+  @Input() isAuthor!: boolean;
   @Output() follow: EventEmitter<string> = new EventEmitter<string>();
   @Output() unfollow: EventEmitter<string> = new EventEmitter<string>();
   @Output() unfavorite: EventEmitter<string> = new EventEmitter();

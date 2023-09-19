@@ -8,6 +8,7 @@ import { Article } from './article.entity';
 import { IArticleRO, IArticlesRO, ICommentsRO } from './article.interface';
 import { Comment } from './comment.entity';
 import { CreateArticleDto, CreateCommentDto } from './dto';
+import { Tag } from '../tag/tag.entity';
 
 @Injectable()
 export class ArticleService {
@@ -19,6 +20,8 @@ export class ArticleService {
     private readonly commentRepository: EntityRepository<Comment>,
     @InjectRepository(User)
     private readonly userRepository: EntityRepository<User>,
+    @InjectRepository(Tag)
+    private readonly tagRepository: EntityRepository<Tag>,
   ) {}
 
   async findAll(userId: number, query: Record<string, string>): Promise<IArticlesRO> {
@@ -154,6 +157,7 @@ export class ArticleService {
       { populate: ['followers', 'favorites', 'articles'] },
     );
     const article = new Article(user!, dto.title, dto.description, dto.body);
+    await this.addTags(dto.tagList);
     article.tagList.push(...dto.tagList);
     user?.articles.add(article);
     await this.em.flush();
@@ -168,11 +172,22 @@ export class ArticleService {
     );
     const article = await this.articleRepository.findOne({ slug }, { populate: ['author'] });
     wrap(article).assign(articleData);
+    await this.addTags(dto.tagList);
     await this.em.flush();
 
     return { article: article!.toJSON(user!) };
   }
 
+  async addTags(tagList: string[]) {
+    var newTags: Tag[] = [];
+    for (var tag of tagList) {
+        const found = await this.tagRepository.findOne({ tag: tag });
+        if (!found) {
+          newTags.push(new Tag(tag));
+        }
+    };
+    this.em.persist(newTags); 
+  }
   async delete(slug: string) {
     return this.articleRepository.nativeDelete({ slug });
   }

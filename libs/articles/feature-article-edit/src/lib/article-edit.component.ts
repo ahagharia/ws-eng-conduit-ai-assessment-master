@@ -58,6 +58,12 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
   }
 
   updateForm(changes: any) {
+    if (changes && changes.tagList && typeof(changes.tagList.split) == 'function') {
+      changes.tagList = changes.tagList.split(',');
+      for (let index = 0; index < changes.tagList.length; index++) {
+        changes.tagList[index] = changes.tagList[index].replace(/\s/g, "");
+      }
+    }
     this.store.dispatch(formsActions.updateData({ data: changes }));
   }
 
